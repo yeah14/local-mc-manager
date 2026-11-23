@@ -38,6 +38,7 @@ internal sealed class MainForm : Form, IRemoteDesk
     Button _restore = null!;
     Button _open = null!;
     Button _config = null!;
+    Button _worldConfig = null!;
     Button _crash = null!;
     Button _send = null!;
     Button _refresh = null!;
@@ -277,6 +278,7 @@ internal sealed class MainForm : Form, IRemoteDesk
         _restore = Theme.MakeButton("从备份恢复");
         _open = Theme.MakeButton("打开目录");
         _config = Theme.MakeButton("服务器配置");
+        _worldConfig = Theme.MakeButton("世界配置");
         _crash = Theme.MakeButton("崩溃记录");
         _start.Click += (_, _) => StartSelected();
         _stop.Click += (_, _) => StopSelected();
@@ -287,12 +289,13 @@ internal sealed class MainForm : Form, IRemoteDesk
         _restore.Click += (_, _) => RestoreWorld();
         _open.Click += (_, _) => OpenServerFolder();
         _config.Click += (_, _) => EditConfig();
+        _worldConfig.Click += (_, _) => EditWorldConfig();
         _crash.Click += (_, _) => ShowCrashes();
         var importMenu = new ContextMenuStrip();
         importMenu.Items.Add("从 ZIP 压缩包替换…", null, (_, _) => ImportZip());
         importMenu.Items.Add("从文件夹替换…", null, (_, _) => ImportFolder());
         _import.Click += (_, _) => importMenu.Show(_import, new Point(0, _import.Height));
-        foreach (var button in new[] { _start, _stop, _kill, _focus, _backup, _newWorld, _import, _restore, _open, _config, _crash })
+        foreach (var button in new[] { _start, _stop, _kill, _focus, _backup, _newWorld, _import, _restore, _open, _config, _worldConfig, _crash })
             actions.Controls.Add(button);
 
         layout.Controls.Add(card, 0, 0);
@@ -620,6 +623,7 @@ internal sealed class MainForm : Form, IRemoteDesk
         _restore.Enabled = server != null && !_busy && !live;
         _open.Enabled = server != null;
         _config.Enabled = server != null && !_busy;
+        _worldConfig.Enabled = server != null && !_busy;
         _crash.Enabled = server != null;
         _send.Enabled = server != null && state is RunState.Starting or RunState.Running or RunState.Stopping;
         _command.Enabled = _send.Enabled;
@@ -1257,6 +1261,18 @@ internal sealed class MainForm : Form, IRemoteDesk
             RefreshList();
             _status.Text = "已保存「" + server.Name + "」的服务器配置，下次启动生效。";
         }
+    }
+
+    void EditWorldConfig()
+    {
+        var server = Selected;
+        if (server == null)
+            return;
+        var state = Rt(server).State;
+        var readOnly = state is RunState.Starting or RunState.Running or RunState.Stopping or RunState.Detached;
+        using var dialog = new WorldConfigForm(server, readOnly);
+        if (dialog.ShowDialog(this) == DialogResult.OK)
+            _status.Text = "已保存「" + server.Name + "」的世界配置，下次启动生效。";
     }
 
     void OpenServerFolder()

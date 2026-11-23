@@ -215,6 +215,7 @@ internal static class SelfTest
                 Check(reloaded.Get("level-type") == "minecraft:normal", "未修改的项保持可读");
                 Check(saved.Contains("#keep me", StringComparison.Ordinal), "保留配置注释");
                 Check(saved.Contains("minecraft\\:normal", StringComparison.Ordinal), "未修改的项保持原写法");
+                WorldConfigCheck.Run(Check);
             }
             finally
             {
